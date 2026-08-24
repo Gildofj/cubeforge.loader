@@ -17,6 +17,24 @@ inline void CleanupRenderTarget() {
     }
 }
 
+extern "C" void CleanupImGui() {
+    if (g_ImGuiInitialized) {
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+        CleanupRenderTarget();
+        if (g_pd3dDeviceContext) {
+            g_pd3dDeviceContext->Release();
+            g_pd3dDeviceContext = nullptr;
+        }
+        if (g_pd3dDevice) {
+            g_pd3dDevice->Release();
+            g_pd3dDevice = nullptr;
+        }
+        g_ImGuiInitialized = false;
+    }
+}
+
 static void CreateRenderTarget(IDXGISwapChain* SwapChain) {
     ID3D11Texture2D* pBackBuffer = nullptr;
     if (SUCCEEDED(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer))) {

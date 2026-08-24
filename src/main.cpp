@@ -23,6 +23,7 @@ GLOBAL HMODULE hSelf; // A handle to ourself, to prevent being unloaded
 GLOBAL void** initterm_eReference; // A pointer-pointer to a function which is run extremely soon after starting, or after being unpacked
 GETTER_VAR(void*, initterm_e); // A pointer to that function
 
+extern "C" void CleanupImGui();
 
 // Handles injecting callbacks and the mods
 bool already_loaded_mods = false;
@@ -310,6 +311,7 @@ extern "C" __declspec(dllexport) BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD
 
     case DLL_PROCESS_DETACH: {
         CW_LOG_INFO("CubeModLoader detaching from process.");
+        CleanupImGui();
         cw::CrashHandler::Uninstall();
         cw::Logger::Instance().Shutdown();
         break;

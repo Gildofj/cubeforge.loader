@@ -31,7 +31,7 @@ void DrawModdedText(cube::StartMenuWidget* widget)
 	FloatRGBA border_color(0.0f, 0.0f, 0.0f, 1.0f);
 	FloatRGBA modded_color(i, 1.0f - i, 0.5f + 0.5f * i, 1.0f);
 	FloatVector2 pos = FloatVector2(0, 0);
-	std::wstring txt_modded = L"Modded";
+	static const std::wstring txt_modded = L"Modded";
 
 	height = - widget->game->height / 3;
 
@@ -41,7 +41,7 @@ void DrawModdedText(cube::StartMenuWidget* widget)
 	widget->SetTextPivot(plasma::TextPivot::Center);
 	widget->SetBorderColor(&border_color);
 	widget->SetTextColor(&modded_color);
-	widget->DrawString(&pos, &txt_modded, 0.5f * widget->GetXSize(), (float)height);
+	widget->DrawString(&pos, const_cast<std::wstring*>(&txt_modded), 0.5f * widget->GetXSize(), (float)height);
 }
 
 extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
@@ -65,8 +65,8 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 	FloatRGBA border_color(0.0f, 0.0f, 0.0f, 1.0f);
 
 
-	std::wstring font1 = L"resource1.dat";
-	std::wstring font2 = L"resource2.dat";
+	static const std::wstring font1 = L"resource1.dat";
+	static const std::wstring font2 = L"resource2.dat";
 	
 	std::wstring btn_txt[num_btns] = {
 		L"Start Game",
@@ -90,7 +90,11 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 		L"Modloader by ChrisMiuchiz and Nichiren.",
 	};
 
-	widget->SetScalableFont(&font2);
+	static bool fontLoaded = false;
+	if (!fontLoaded) {
+		widget->SetScalableFont(const_cast<std::wstring*>(&font2));
+		fontLoaded = true;
+	}
 	DrawModdedText(widget);
 
 	mouse_pos = *widget->GetRelativeMousePosition(&mouse_pos);
