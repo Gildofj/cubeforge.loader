@@ -19,6 +19,7 @@ public:
 
     GenericMod* mod{nullptr};
     bool enabled{true};
+    bool isLegacy{false};
 
     explicit DLL(std::string fileName);
     virtual ~DLL();
@@ -33,6 +34,7 @@ public:
 
     HMODULE Load();
     [[nodiscard]] bool IsLoaded() const noexcept;
+    [[nodiscard]] bool IsLegacy() const noexcept { return isLegacy; }
 };
 
 #endif // DLL_H

@@ -46,9 +46,6 @@ public:
 	Priority OnPresentPriority = NormalPriority;
 	virtual void OnPresent(void* SwapChain, UINT SyncInterval, UINT Flags) {}
 
-	Priority OnDrawImGuiPriority = NormalPriority;
-	virtual void OnDrawImGui() {}
-
 	Priority OnCreatureArmorCalculatedPriority = NormalPriority;
 	virtual void OnCreatureArmorCalculated(void* creature, float* armor) {}
 
@@ -81,6 +78,40 @@ public:
 
 	Priority OnChunkRemeshedPriority = NormalPriority;
 	virtual void OnChunkRemeshed(void* zone) {}
+
+	enum DeathType : __int32 {
+		COMBAT = 0,
+		DROWN,
+		FALL
+	};
+
+	Priority OnPlayerDeathPriority = NormalPriority;
+	virtual void OnPlayerDeath(void* game, void* player, DeathType type) {}
+
+	Priority OnCreatureDeathPriority = NormalPriority;
+	virtual void OnCreatureDeath(void* game, void* creature, void* attacker) {}
+
+	Priority OnGameUpdatePriority = NormalPriority;
+	virtual void OnGameUpdate(void* game) {}
+
+	Priority OnGetItemBuyingPricePriority = NormalPriority;
+	virtual void OnGetItemBuyingPrice(void* item, int* price) {}
+
+	Priority OnGetItemSellingPricePriority = NormalPriority;
+	virtual void OnGetItemSellingPrice(void* item, int* price) {}
+
+	Priority OnCreatureCanEquipItemPriority = NormalPriority;
+	virtual void OnCreatureCanEquipItem(void* creature, void* item, bool* equipable) {}
+
+	Priority OnItemGetGoldBagValuePriority = NormalPriority;
+	virtual void OnItemGetGoldBagValue(void* item, int* gold) {}
+
+	Priority OnClassCanWearItemPriority = NormalPriority;
+	virtual void OnClassCanWearItem(void* item, int classType, bool* wearable) {}
+
+	// --- CubeForge ImGui Extensions (Index 30+) ---
+	Priority OnDrawImGuiPriority = NormalPriority;
+	virtual void OnDrawImGui() {}
 };
 
 #endif // GENERICMOD_H

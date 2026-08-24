@@ -84,7 +84,7 @@ extern "C" int PresentHandler(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT
 
 	bool hasActiveImGuiMods = false;
 	for (DLL* dll : modDLLs) {
-		if (dll && dll->mod && dll->enabled) {
+		if (dll && dll->mod && dll->enabled && !dll->IsLegacy()) {
 			hasActiveImGuiMods = true;
 			break;
 		}
@@ -107,7 +107,7 @@ extern "C" int PresentHandler(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT
 
 		for (uint8_t priority = 0; priority <= 4; priority += 1) {
 			for (DLL* dll : modDLLs) {
-				if (dll && dll->mod && dll->enabled && dll->mod->OnDrawImGuiPriority == (GenericMod::Priority)priority) {
+				if (dll && dll->mod && dll->enabled && !dll->IsLegacy() && dll->mod->OnDrawImGuiPriority == (GenericMod::Priority)priority) {
 					dll->mod->OnDrawImGui();
 				}
 			}

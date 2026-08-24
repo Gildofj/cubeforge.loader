@@ -54,14 +54,16 @@ namespace cw {
     setup_function(cube__Creature__OnPlayerCombatDeath);
     setup_function(cube__Creature__OnPlayerDrownDeath);
     setup_function(cube__Creature__OnPlayerFallDeath);
-    setup_function(cube__Creature__OnCreatureDeath);
-    setup_function(cube__Creature__CanEquipItem);
+    // Note: cube__Creature__CanEquipItem (0x50640) and cube__Item__OnClassCanWearItem (0x1094D0)
+    // overwrite native Cube World item tables with incomplete logic causing weapons/armor
+    // to be marked unknown and unwearable. They are disabled to preserve native game engine behavior.
+    // setup_function(cube__Creature__CanEquipItem);
     setup_function(cube__StartMenuWidget__Draw);
     setup_function(cube__Game__Update);
     setup_function(cube__Item__GetBuyingPrice);
     setup_function(cube__Item__OnGetSellingPrice);
     setup_function(cube__Item__OnGetGoldBagValue);
-    setup_function(cube__Item__OnClassCanWearItem);
+    // setup_function(cube__Item__OnClassCanWearItem);
 
     SetupChatHandler();
     SetupP2PRequestHandler();

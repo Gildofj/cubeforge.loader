@@ -70,11 +70,19 @@ extern "C" void StartMods() {
         dll->ModMajorVersion = GetProcAddress(dll->handle, "ModMajorVersion");
         dll->ModMinorVersion = GetProcAddress(dll->handle, "ModMinorVersion");
         dll->ModPreInitialize = GetProcAddress(dll->handle, "ModPreInitialize");
+        dll->isLegacy = (dll->ModMajorVersion == nullptr);
+        if (dll->isLegacy) {
+            CW_LOG_INFO("Mod '%s' detected as legacy mod (CWSDK legacy mode enabled).", dll->fileName.c_str());
+        }
     }
 
-    // Ensure version compatibility
+    // Ensure version compatibility for modern mods
 	for (DLL* dll : modDLLs) {
-		int majorVersion = dll->ModMajorVersion ? ((int(*)())dll->ModMajorVersion)() : MOD_MAJOR_VERSION;
+		if (dll->isLegacy) {
+			continue;
+		}
+
+		int majorVersion = ((int(*)())dll->ModMajorVersion)();
 		int minorVersion = dll->ModMinorVersion ? ((int(*)())dll->ModMinorVersion)() : MOD_MINOR_VERSION;
 
 		if (majorVersion > MOD_MAJOR_VERSION) {

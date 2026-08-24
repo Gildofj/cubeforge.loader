@@ -11,6 +11,7 @@ DLL::DLL(std::string fileName)
     , MakeMod(nullptr)
     , mod(nullptr)
     , enabled(true)
+    , isLegacy(false)
 {
 }
 
@@ -23,6 +24,7 @@ DLL::DLL(DLL&& other) noexcept
     , MakeMod(other.MakeMod)
     , mod(other.mod)
     , enabled(other.enabled)
+    , isLegacy(other.isLegacy)
 {
     other.handle = nullptr;
     other.mod = nullptr;
@@ -42,6 +44,7 @@ DLL& DLL::operator=(DLL&& other) noexcept
         MakeMod = other.MakeMod;
         mod = other.mod;
         enabled = other.enabled;
+        isLegacy = other.isLegacy;
 
         other.handle = nullptr;
         other.mod = nullptr;
