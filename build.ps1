@@ -34,6 +34,28 @@ $presetName = ""
 $testPresetName = ""
 
 if ($isWindows) {
+    if ($env:VSCMD_ARG_TGT_ARCH -ne "x64" -or -not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vcvars = $null
+        if (Test-Path $vswhere) {
+            $vsPath = & $vswhere -latest -prerelease -property installationPath
+            if ($vsPath -and (Test-Path "$vsPath\VC\Auxiliary\Build\vcvars64.bat")) {
+                $vcvars = "$vsPath\VC\Auxiliary\Build\vcvars64.bat"
+            }
+        }
+        if (-not $vcvars) {
+            $candidate = Get-ChildItem -Path "C:\Program Files\Microsoft Visual Studio", "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "vcvars64.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($candidate) { $vcvars = $candidate.FullName }
+        }
+        if ($vcvars) {
+            Write-Host "Inicializando ambiente MSVC x64: $vcvars" -ForegroundColor Cyan
+            cmd.exe /c "call `"$vcvars`" >nul 2>&1 && set" | ForEach-Object {
+                if ($_ -match "^(.*?)=(.*)$") {
+                    [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], "Process")
+                }
+            }
+        }
+    }
     $testPresetName = "windows-test"
     if ($BuildType -eq "Debug") {
         $presetName = "windows-debug"

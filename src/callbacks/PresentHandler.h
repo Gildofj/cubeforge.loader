@@ -10,7 +10,7 @@ static ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
 static ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
 static HWND g_hGameWnd = nullptr;
 
-static void CleanupRenderTarget() {
+inline void CleanupRenderTarget() {
     if (g_mainRenderTargetView) {
         g_mainRenderTargetView->Release();
         g_mainRenderTargetView = nullptr;
@@ -64,13 +64,25 @@ extern "C" int PresentHandler(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT
 		}
 	}
 
-	// 2. Initialize Dear ImGui on first Present call
-	if (!g_ImGuiInitialized && SwapChain) {
+	bool hasActiveImGuiMods = false;
+	for (DLL* dll : modDLLs) {
+		if (dll && dll->mod && dll->enabled) {
+			hasActiveImGuiMods = true;
+			break;
+		}
+	}
+
+	// 2. Initialize Dear ImGui on first Present call if mods are active
+	if (hasActiveImGuiMods && !g_ImGuiInitialized && SwapChain) {
 		InitImGui(SwapChain);
 	}
 
 	// 3. Render Dear ImGui frame and dispatch OnDrawImGui() to mods
-	if (g_ImGuiInitialized && g_pd3dDeviceContext && g_mainRenderTargetView) {
+	if (hasActiveImGuiMods && g_ImGuiInitialized && g_pd3dDeviceContext && g_mainRenderTargetView) {
+		ID3D11RenderTargetView* oldRTV = nullptr;
+		ID3D11DepthStencilView* oldDSV = nullptr;
+		g_pd3dDeviceContext->OMGetRenderTargets(1, &oldRTV, &oldDSV);
+
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
@@ -86,6 +98,11 @@ extern "C" int PresentHandler(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT
 		ImGui::Render();
 		g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		// Restore previous render targets so game engine state is not clobbered
+		g_pd3dDeviceContext->OMSetRenderTargets(1, &oldRTV, oldDSV);
+		if (oldRTV) oldRTV->Release();
+		if (oldDSV) oldDSV->Release();
 	}
 
 	return 0;

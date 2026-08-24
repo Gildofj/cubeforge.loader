@@ -1,3 +1,10 @@
+.data
+float_0_75 REAL4 0.75
+float_0_6  REAL4 0.6
+float_1_1  REAL4 1.1
+float_1_0  REAL4 1.0
+float_0_1  REAL4 0.1
+
 .code
 
 ; =============================================================================
@@ -261,6 +268,7 @@ ASM_WindowProcHandler PROC
     jmp qword ptr [ASM_WindowProcHandler_jmpback]
 wndproc_block:
     POP_ALL
+    xor eax, eax
     ret
 ASM_WindowProcHandler ENDP
 
@@ -371,128 +379,157 @@ ASM_CreatureAttackPowerCalculatedHandler PROC
 ASM_CreatureAttackPowerCalculatedHandler ENDP
 
 ASM_CreatureCriticalCalculatedHandler PROC
+    movaps xmm0, xmm6
     PUSH_ALL
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
+    mov rcx, rbx
     PREPARE_STACK
     call CreatureCriticalCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
+    mov rbx, [rsp+40h]
+    movaps xmm6, [rsp+20h]
+    mov rsi, [rsp+48h]
+    add rsp, 30h
     pop rdi
-    pop rsi
     ret
 ASM_CreatureCriticalCalculatedHandler ENDP
 
 ASM_CreatureHasteCalculatedHandler PROC
+    mov [rsp-80h], rbx
+    mov rbx, [rsp+50h]
+    shr eax, 9
+    test al, 1
+    jz haste_lbl0
+    mulss xmm7, float_0_75
+    jmp haste_lbl0
+haste_lbl0:
+    mov eax, ecx
+    shr eax, 12h
+    test al, 1
+    jz haste_lbl1
+    mulss xmm7, float_0_6
+    jmp haste_lbl1
+haste_lbl1:
+    bt ecx, 1Ah
+    jnb haste_lbl2
+    mulss xmm7, float_1_1
+    jmp haste_lbl2
+haste_lbl2:
+    movaps xmm0, xmm7
     PUSH_ALL
+    mov rcx, [rsp-8h]
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
     PREPARE_STACK
     call CreatureHasteCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
-    pop rdi
-    pop rsi
+    movaps xmm7, [rsp+30h]
+    add rsp, 58h
     ret
 ASM_CreatureHasteCalculatedHandler ENDP
 
 ASM_CreatureHPCalculatedHandler PROC
+    movaps xmm0, xmm6
     PUSH_ALL
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
+    mov rcx, rbx
     PREPARE_STACK
     call CreatureHPCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
-    pop rdi
-    pop rsi
+    movaps xmm6, [rsp+20h]
+    add rsp, 30h
+    pop rbx
     ret
 ASM_CreatureHPCalculatedHandler ENDP
 
 ASM_CreatureManaGenerationCalculatedHandler PROC
+    push rcx
+    mov rcx, [rcx+980h]
+    mov rax, [rcx]
+    cmp rax, rcx
+    jz mana_lbl2
+mana_lbl1:
+    cmp byte ptr [rax+10h], 22h
+    jz mana_lbl3
+    mov rax, [rax]
+    cmp rax, rcx
+    jnz mana_lbl1
+mana_lbl2:
+    movss xmm0, float_1_0
+    jmp mana_lbl7
+mana_lbl3:
+    add rax, 10h
+    jz mana_lbl2
+    movss xmm1, dword ptr [rax+4]
+    mulss xmm1, float_0_1
+    movss xmm0, float_1_0
+    subss xmm0, xmm1
+mana_lbl7:
     PUSH_ALL
+    mov rcx, [rsp+78h]
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
     PREPARE_STACK
     call CreatureManaGenerationCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
-    pop rdi
-    pop rsi
+    add rsp, 8
     ret
 ASM_CreatureManaGenerationCalculatedHandler ENDP
 
 ASM_CreatureRegenerationCalculatedHandler PROC
+    movaps xmm0, xmm6
     PUSH_ALL
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
+    mov rcx, rbx
     PREPARE_STACK
     call CreatureRegenerationCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
-    pop rdi
-    pop rsi
+    movaps xmm6, [rsp+20h]
+    add rsp, 30h
+    pop rbx
     ret
 ASM_CreatureRegenerationCalculatedHandler ENDP
 
 ASM_CreatureResistanceCalculatedHandler PROC
+    movaps xmm0, xmm6
     PUSH_ALL
     movq rax, xmm0
     push rax
     lea rdx, [rsp]
-    mov rcx, rsi
+    mov rcx, rbx
     PREPARE_STACK
     call CreatureResistanceCalculatedHandler
     RESTORE_STACK
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
-    mov rsp, r11
-    pop r14
+    mov rbx, [rsp+40h]
+    movaps xmm6, [rsp+20h]
+    add rsp, 30h
     pop rdi
-    pop rsi
     ret
 ASM_CreatureResistanceCalculatedHandler ENDP
 
@@ -508,8 +545,8 @@ ASM_CreatureSpellPowerCalculatedHandler PROC
     pop rax
     movq xmm0, rax
     POP_ALL
-    movaps xmm6, [rsp+70h]
-    movaps xmm7, [rsp+60h]
+    mov rbp, [r11+30h]
+    movaps xmm6, [rsp+60h]
     mov rsp, r11
     pop r14
     pop rdi

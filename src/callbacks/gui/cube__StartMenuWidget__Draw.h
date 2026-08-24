@@ -201,9 +201,9 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 		offset = 25;
 	}
 
-	std::wstring versions[] = {
+	std::wstring versions[2] = {
 		L"Game: 1.0.0-1",
-		L"Modloader: " + to_wstring(MOD_MAJOR_VERSION) + L"." + to_wstring(MOD_MINOR_VERSION),
+		L"Modloader: " + std::to_wstring(MOD_MAJOR_VERSION) + L"." + std::to_wstring(MOD_MINOR_VERSION),
 	};
 	widget->SetScalableFont(&font1);
 	widget->SetTextSize(12.0f);

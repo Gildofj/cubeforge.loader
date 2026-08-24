@@ -6,22 +6,12 @@
 #define MODLOADER 1
 #include "cwsdk.h"
 #include "DLL.h"
+#include "ModWidget.h"
 #include "crc.h"
 #include "mutex.h"
 #include "macros.h"
 #include "Logger.h"
 #include "CrashHandler.h"
-
-#define MOD_MAJOR_VERSION 7
-#define MOD_MINOR_VERSION 3
-
-#define CUBE_VERSION "1.0.0-1"
-#define CUBE_PACKED_CRC 0xC7682619
-#define CUBE_UNPACKED_CRC 0xBA092543
-
-#define MODLOADER_NAME "CubeForgeLoader"
-
-#define USE_CHECKSUM
 
 using namespace std;
 
@@ -51,6 +41,7 @@ extern "C" void StartMods() {
     CW_LOG_INFO("StartMods() invoked. Beginning mod discovery and setup...");
 
     ModPreInitialize();
+    mod::ModWidget::Init();
     cw::HookManager::SetupHandlers();
 
     //Find mods
@@ -109,13 +100,16 @@ extern "C" void StartMods() {
 
     mod::ModWidget::LoadSave(&modDLLs);
     allDlls = std::vector<DLL*>(modDLLs.begin(), modDLLs.end());
-    for (int i = 0; i < modDLLs.size(); i++)
+    for (size_t i = 0; i < modDLLs.size();)
     {
         if (!modDLLs.at(i)->enabled)
         {
             CW_LOG_INFO("Mod disabled by configuration: %s", modDLLs.at(i)->fileName.c_str());
             modDLLs.erase(modDLLs.begin() + i);
-            i--;
+        }
+        else
+        {
+            ++i;
         }
     }
 

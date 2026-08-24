@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.25)
-project(CubeForgeLoader LANGUAGES C CXX)
+
+if(CMAKE_HOST_WIN32 OR CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    project(CubeForgeLoader LANGUAGES C CXX ASM_MASM)
+else()
+    project(CubeForgeLoader LANGUAGES C CXX)
+endif()
 
 # Enforce standard-compliant and modern behavior
 cmake_policy(SET CMP0091 NEW) # Use MSVC_RUNTIME_LIBRARY property
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 # Enable compiler cache if available
 find_program(CCACHE_PROGRAM NAMES ccache sccache)
@@ -12,17 +21,14 @@ if(CCACHE_PROGRAM)
     message(STATUS "Found compiler cache: ${CCACHE_PROGRAM}")
 endif()
 
-# Enable Clang-Tidy integration if available
-find_program(CLANG_TIDY_PROGRAM NAMES clang-tidy)
-if(CLANG_TIDY_PROGRAM)
-    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_PROGRAM}")
-    message(STATUS "Found Clang-Tidy: ${CLANG_TIDY_PROGRAM}")
-endif()
-
-if(MSVC)
-    # Enable MASM support natively on MSVC
-    enable_language(ASM_MASM)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# Enable Clang-Tidy integration if requested
+option(ENABLE_CLANG_TIDY "Enable static analysis with Clang-Tidy" OFF)
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_PROGRAM NAMES clang-tidy)
+    if(CLANG_TIDY_PROGRAM)
+        set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_PROGRAM}")
+        message(STATUS "Found Clang-Tidy: ${CLANG_TIDY_PROGRAM}")
+    endif()
 endif()
 
 # Enable Link-Time Optimization (LTO) for Release/RelWithDebInfo builds if supported
@@ -41,25 +47,33 @@ target_compile_features(Loader_CompilerFlags INTERFACE cxx_std_20)
 
 if(MSVC)
     target_compile_options(Loader_CompilerFlags INTERFACE 
-        /W4          # Enforce stricter warnings (Level 4)
-        /EHsc        # Standard C++ exception handling
-        /utf-8       # Set Source and Executable character sets to UTF-8
-        /wd4828      # Disable warning on characters that cannot be represented in the current code page
-        /wd4100      # Suppress unreferenced formal parameter (common in callbacks/hooks)
-        /MP          # Multi-process compilation
-        /Zc:inline   # Remove unreferenced functions or data
+        $<$<COMPILE_LANGUAGE:CXX>:
+            /W4          # Enforce stricter warnings (Level 4)
+            /EHsc        # Standard C++ exception handling
+            /utf-8       # Set Source and Executable character sets to UTF-8
+            /permissive- # Strict standards conformance
+            /Zc:__cplusplus # Correct __cplusplus macro
+            /wd4828      # Disable warning on characters that cannot be represented in the current code page
+            /wd4100      # Suppress unreferenced formal parameter (common in callbacks/hooks)
+            /MP          # Multi-process compilation
+            /Zc:inline   # Remove unreferenced functions or data
+        >
     )
     target_compile_definitions(Loader_CompilerFlags INTERFACE
         _ITERATOR_DEBUG_LEVEL=0
         _CRT_SECURE_NO_WARNINGS
         DIRECTINPUT_VERSION=0x0800
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
     )
 else()
     target_compile_options(Loader_CompilerFlags INTERFACE 
-        -Wall 
-        -Wextra 
-        -Wpedantic 
-        -Wno-unused-parameter
+        $<$<COMPILE_LANGUAGE:CXX>:
+            -Wall 
+            -Wextra 
+            -Wpedantic 
+            -Wno-unused-parameter
+        >
     )
 endif()
 
@@ -105,43 +119,27 @@ endif()
 add_library(imgui::imgui ALIAS imgui)
 
 # Fetch and configure cubeforge_sdk
-FetchContent_Declare(
-    cubeforge_sdk
-    SYSTEM
-    GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
-    GIT_TAG        master
-    GIT_SHALLOW    TRUE
-)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../cubeforge.sdk/CMakeLists.txt")
+    FetchContent_Declare(
+        cubeforge_sdk
+        SYSTEM
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cubeforge.sdk"
+    )
+else()
+    FetchContent_Declare(
+        cubeforge_sdk
+        SYSTEM
+        GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
+        GIT_TAG        master
+        GIT_SHALLOW    TRUE
+    )
+endif()
 FetchContent_MakeAvailable(cubeforge_sdk)
 
 # Restore Clang-Tidy for our project targets
 set(CMAKE_CXX_CLANG_TIDY ${OLD_CMAKE_CXX_CLANG_TIDY})
 
-# Ensure CWSDK target compiles with correct compiler flags and exception handling
-target_compile_features(CWSDK PRIVATE cxx_std_20)
-if(MSVC)
-    target_compile_options(CWSDK PRIVATE 
-        /W4          # Enforce stricter warnings (Level 4)
-        /EHsc        # Standard C++ exception handling
-        /utf-8       # Set Source and Executable character sets to UTF-8
-        /wd4828      # Disable warning on characters that cannot be represented in the current code page
-        /wd4100      # Suppress unreferenced formal parameter (common in callbacks/hooks)
-        /MP          # Multi-process compilation
-        /Zc:inline   # Remove unreferenced functions or data
-    )
-    target_compile_definitions(CWSDK PRIVATE
-        _ITERATOR_DEBUG_LEVEL=0
-        _CRT_SECURE_NO_WARNINGS
-        DIRECTINPUT_VERSION=0x0800
-    )
-else()
-    target_compile_options(CWSDK PRIVATE 
-        -Wall 
-        -Wextra 
-        -Wpedantic 
-        -Wno-unused-parameter
-    )
-endif()
+
 
 option(BUILD_LOADER "Build CubeForgeLoader dynamic library and .fip" ON)
 option(BUILD_TESTS "Build automated unit and integration tests" OFF)

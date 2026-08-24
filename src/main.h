@@ -3,6 +3,17 @@
 
 #include "DLL.h"
 #include <vector>
+#include <cstdint>
+
+#define MOD_MAJOR_VERSION 7
+#define MOD_MINOR_VERSION 3
+
+#define CUBE_VERSION "1.0.0-1"
+#define CUBE_PACKED_CRC 0xC7682619
+#define CUBE_UNPACKED_CRC 0xBA092543
+
+#define MODLOADER_NAME "CubeForgeLoader"
+#define USE_CHECKSUM
 
 void WriteFarJMP(void* source, void* destination);
 void Popup(const char* title, const char* msg);

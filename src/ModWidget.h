@@ -25,7 +25,7 @@ namespace mod {
 		void* artificial_vtable[43];
 
 
-		ModWidget* ctor(cube::Game* game, plasma::Node* node, plasma::Node* background, std::vector<DLL*>* mods);
+		ModWidget* ctor(cube::Game* game_ptr, plasma::Node* node_ptr, plasma::Node* background_ptr, std::vector<DLL*>* mods_ptr);
 
 		void MouseUp(cube::MouseButton mouse_button);
 		bool NextPageAvailable();

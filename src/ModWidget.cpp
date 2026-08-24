@@ -7,17 +7,17 @@ static std::string file_name = "mods-settings.cwb";
 static const int MODS_PER_PAGE = 7;
 void* VTABLE[43];
 
-mod::ModWidget* mod::ModWidget::ctor(cube::Game* game, plasma::Node* node, plasma::Node* background, std::vector<DLL*>* mods)
+mod::ModWidget* mod::ModWidget::ctor(cube::Game* game_ptr, plasma::Node* node_ptr, plasma::Node* background_ptr, std::vector<DLL*>* mods_ptr)
 {
 	// Construct basewidget
 	std::wstring wstr_empty(L"");
-	((cube::BaseWidget*)this)->ctor(game->plasma_engine, node, &wstr_empty);
+	((cube::BaseWidget*)this)->ctor(game_ptr->plasma_engine, node_ptr, &wstr_empty);
 
 	// Set fields
-	this->game = game;
+	this->game = game_ptr;
 	this->hover_state = 0;
-	this->background = background;
-	this->mods = mods;
+	this->background = background_ptr;
+	this->mods = mods_ptr;
 	this->page = 0;
 	this->changed = false;
 
@@ -55,16 +55,16 @@ void mod::ModWidget::MouseUp(cube::MouseButton mouse_button)
 		if (this->changed)
 		{
 			// Restart the game
-			char* argument_list[] = { (char *)"cubeworld.exe", NULL };
+			char* argument_list[] = { (char *)"cubeworld.exe", nullptr };
 			_execvp("cubeworld.exe", argument_list);
 		}
 		break;
 	case HoverState::Toggle:
-		if (this->selected < 0 || this->selected >= this->mods->size())
+		if (this->selected < 0 || (size_t)this->selected >= this->mods->size())
 		{
 			return;
 		}
-		this->mods->at(this->selected)->enabled = !this->mods->at(this->selected)->enabled;
+		this->mods->at((size_t)this->selected)->enabled = !this->mods->at((size_t)this->selected)->enabled;
 		ModWidget::StoreSave(this->mods);
 		this->changed = true;
 		break;
@@ -88,7 +88,7 @@ void mod::ModWidget::MouseUp(cube::MouseButton mouse_button)
 
 bool mod::ModWidget::NextPageAvailable()
 {
-	return (this->page + 1) * MODS_PER_PAGE < this->mods->size();
+	return ((size_t)this->page + 1) * MODS_PER_PAGE < this->mods->size();
 }
 
 bool mod::ModWidget::PreviousPageAvailable()
@@ -163,7 +163,7 @@ void mod::ModWidget::Draw(ModWidget* widget)
 	// Draw mods
 	int y_count = 0;
 
-	for (int i = widget->page * 7; i < (widget->page + 1)*7 && i < widget->mods->size(); i++)
+	for (int i = widget->page * 7; i < (widget->page + 1)*7 && (size_t)i < widget->mods->size(); i++)
 	{
 		DLL* dll = widget->mods->at(i);
 		widget->SetTextPivot(plasma::TextPivot::Left);

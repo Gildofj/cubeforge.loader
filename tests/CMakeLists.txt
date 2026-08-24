@@ -37,7 +37,7 @@ target_compile_definitions(test_runner PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 if(MSVC)
     target_link_libraries(test_runner PRIVATE dbghelp)
-    target_compile_definitions(test_runner PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(test_runner PRIVATE _ITERATOR_DEBUG_LEVEL=0 MODLOADER=1 CWSDK_NO_GLOBAL_NEW_DELETE=1)
     set_property(TARGET test_runner PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 

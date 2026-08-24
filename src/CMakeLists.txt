@@ -4,12 +4,11 @@ add_library(CubeForgeLoader_Common OBJECT
     mutex.cpp
     Logger.cpp
     CrashHandler.cpp
-    HookManager.cpp
 )
 add_library(CubeForge::Common ALIAS CubeForgeLoader_Common)
 
-# Link to common compiler options and standard
-target_link_libraries(CubeForgeLoader_Common PUBLIC CubeForge::CompilerFlags)
+# Link to common compiler options, standard, and CWSDK
+target_link_libraries(CubeForgeLoader_Common PUBLIC CWSDK CubeForge::CompilerFlags)
 
 # Local include directories
 target_include_directories(CubeForgeLoader_Common PUBLIC 
@@ -26,7 +25,7 @@ target_include_directories(CubeForgeLoader_Common SYSTEM PUBLIC
 
 if(MSVC)
     set_property(TARGET CubeForgeLoader_Common PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    target_compile_definitions(CubeForgeLoader_Common PRIVATE _ITERATOR_DEBUG_LEVEL=0 MODLOADER)
+    target_compile_definitions(CubeForgeLoader_Common PRIVATE _ITERATOR_DEBUG_LEVEL=0 MODLOADER=1 CWSDK_NO_GLOBAL_NEW_DELETE=1)
 endif()
 
 # Enable Precompiled Headers to speed up compilation
@@ -42,8 +41,10 @@ target_precompile_headers(CubeForgeLoader_Common PUBLIC
 if(BUILD_LOADER)
     if(MSVC)
         # On MSVC, use native MASM compiler support for trampolines.asm
+        set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/trampolines.asm" PROPERTIES LANGUAGE ASM_MASM)
         add_library(CubeForgeLoader SHARED 
             $<TARGET_OBJECTS:CubeForgeLoader_Common>
+            HookManager.cpp
             DLL.cpp
             main.cpp
             ModWidget.cpp
@@ -53,6 +54,7 @@ if(BUILD_LOADER)
         # Non-MSVC platforms (like macOS during development/testing)
         add_library(CubeForgeLoader SHARED 
             $<TARGET_OBJECTS:CubeForgeLoader_Common>
+            HookManager.cpp
             DLL.cpp
             main.cpp
             ModWidget.cpp
@@ -80,7 +82,7 @@ if(BUILD_LOADER)
         CubeForge::CompilerFlags
     )
     
-    target_compile_definitions(CubeForgeLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(CubeForgeLoader PRIVATE MODLOADER=1 CWSDK_NO_GLOBAL_NEW_DELETE=1 _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(CWSDK PRIVATE MODLOADER)
 
     # Reuse Precompiled Headers from CubeForgeLoader_Common to speed up build further

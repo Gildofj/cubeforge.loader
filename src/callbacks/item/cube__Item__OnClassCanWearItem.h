@@ -12,7 +12,7 @@ extern "C" bool cube__Item__OnClassCanWearItem (cube::Item* item, int classType)
 	{
 		cube::Item copy;
 		copy.Copy(item);
-		copy.category = item->formula_category;
+		copy.category = static_cast<char>(item->formula_category);
 		copy.formula_category = 0;
 		if (item->formula_category == 2)
 		{
