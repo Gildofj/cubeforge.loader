@@ -1,10 +1,16 @@
 #pragma once
+#include "../../Logger.h"
 
 extern "C" void cube__Creature__OnCreatureDeath(cube::Creature* creature, cube::Creature* attacker)
 {
     if (!creature) return;
 	cube::Game* game = cube::GetGame();
+	if (!attacker && game) {
+		attacker = game->GetPlayer();
+	}
 	creature->entity_data.HP = 0;
+
+	CW_LOG_DEBUG("cube__Creature__OnCreatureDeath: creature=%p, attacker=%p", creature, attacker);
 
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {

@@ -555,10 +555,15 @@ ASM_CreatureSpellPowerCalculatedHandler PROC
 ASM_CreatureSpellPowerCalculatedHandler ENDP
 
 ASM_cube__Creature__OnCreatureDeath PROC
+    PUSH_ALL
     mov rdx, r15
     mov rcx, r13
+    PREPARE_STACK
     call cube__Creature__OnCreatureDeath
+    RESTORE_STACK
+    POP_ALL
     xor r15d, r15d
+    mov qword ptr [r13 + 180h], r15
     mov dword ptr [rbp-41h], 3F800000h
     jmp qword ptr [ASM_cube__Creature__OnCreatureDeath_JMPBACK]
 ASM_cube__Creature__OnCreatureDeath ENDP
